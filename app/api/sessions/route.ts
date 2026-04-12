@@ -20,6 +20,17 @@ export async function POST(request: Request) {
       return new Response('Scenario not found', { status: 404 })
     }
 
+    // Ensure user row exists (auth callback upsert may have failed due to RLS)
+    if (body.user_id) {
+      const { data: authUser } = await db.auth.admin.getUserById(body.user_id)
+      if (authUser?.user) {
+        await db.from('users').upsert(
+          { id: body.user_id, email: authUser.user.email },
+          { onConflict: 'id', ignoreDuplicates: true },
+        )
+      }
+    }
+
     // Create session
     const { data: session, error: sessionError } = await db
       .from('sessions')
