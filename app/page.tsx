@@ -86,6 +86,7 @@ export default function HomePage() {
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [historyLoaded, setHistoryLoaded] = useState(false)
   const [starting, setStarting] = useState<string | null>(null)
+  const [startError, setStartError] = useState<string | null>(null)
 
   // Auth gate
   useEffect(() => {
@@ -122,9 +123,16 @@ export default function HomePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scenario_id: scenarioId, user_id: user.id }),
       })
+      if (!res.ok) {
+        const text = await res.text()
+        setStartError(`${res.status}: ${text}`)
+        setStarting(null)
+        return
+      }
       const data = await res.json()
       router.push(`/session/${data.session.id}`)
-    } catch {
+    } catch (err) {
+      setStartError(err instanceof Error ? err.message : 'Unknown error')
       setStarting(null)
     }
   }
@@ -201,6 +209,12 @@ export default function HomePage() {
                 실전 대화를 연습하고 AI 코치에게 피드백을 받아보세요
               </p>
             </div>
+
+            {startError && (
+              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-600 break-all">
+                {startError}
+              </div>
+            )}
 
             {loadingScenarios ? (
               <div className="space-y-3">
