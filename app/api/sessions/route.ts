@@ -31,15 +31,20 @@ export async function POST(request: Request) {
       .select()
       .single()
 
-    if (sessionError || !session) throw sessionError
+    if (sessionError || !session) {
+      const msg = sessionError
+        ? JSON.stringify(sessionError)
+        : 'insert returned no data'
+      return new Response(`Session insert failed: ${msg}`, { status: 500 })
+    }
 
     return Response.json({
       session: session as Session,
       scenario: scenario as Scenario,
     } satisfies CreateSessionResponse)
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to create session'
-    return new Response(message, { status: 500 })
+    const message = err instanceof Error ? err.message : JSON.stringify(err)
+    return new Response(`Unexpected error: ${message}`, { status: 500 })
   }
 }
 
