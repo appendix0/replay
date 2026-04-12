@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { PersonaAvatar } from '@/components/PersonaAvatar'
+import { CharacterDisplay } from '@/components/CharacterDisplay'
 import type { FeedbackReport, Scenario, Session } from '@/types'
 
 interface FeedbackData {
@@ -148,12 +148,13 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
                     className="rounded-full border-4 border-white shadow-lg"
                     style={{ background: '#eff6ff' }}
                   >
-                    <PersonaAvatar
+                    <CharacterDisplay
                       name={persona.name}
                       size="xl"
                       isTalking={isTalking}
                       animate={false}
                       aggression={persona.aggression}
+                      avatarId={persona.avatar_id}
                     />
                   </div>
                 </div>

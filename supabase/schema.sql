@@ -89,6 +89,18 @@ create index if not exists feedback_reports_session_id_idx on feedback_reports(s
 -- =====================
 -- Seed: Built-in Scenarios
 -- =====================
+--
+-- avatar_id   → Ready Player Me avatar UUID (no API key required).
+--               Create a free avatar at https://readyplayer.me/avatar
+--               Copy the UUID from the share URL and paste it below.
+--               Example URL: https://models.readyplayer.me/<UUID>.glb
+--               Leave null to fall back to the built-in SVG avatar.
+--
+-- tts_voice_id → ElevenLabs voice ID from https://elevenlabs.io/voice-library
+--               The IDs below are real public voices from ElevenLabs' default
+--               library (eleven_multilingual_v2 supports Korean for all of them).
+--               Replace with cloned/custom voice IDs if you want a better match.
+--
 insert into scenarios (title, description, difficulty, persona_config) values
 (
   '거절 연습',
@@ -102,7 +114,9 @@ insert into scenarios (title, description, difficulty, persona_config) values
     "volatility": 0.3,
     "patience": 0.7,
     "language": "ko",
-    "system_prompt": "당신은 박 대리입니다. 친근하고 사교적인 성격이지만, 자신의 업무를 다른 사람에게 떠넘기려는 경향이 있습니다. 상대방이 거절하면 처음에는 조금 더 설득하려 하지만, 강하게 거절하면 이해하는 척 물러납니다. 자연스러운 한국어 직장 대화체를 사용하세요."
+    "system_prompt": "당신은 박 대리입니다. 친근하고 사교적인 성격이지만, 자신의 업무를 다른 사람에게 떠넘기려는 경향이 있습니다. 상대방이 거절하면 처음에는 조금 더 설득하려 하지만, 강하게 거절하면 이해하는 척 물러납니다. 자연스러운 한국어 직장 대화체를 사용하세요.",
+    "avatar_id": null,
+    "tts_voice_id": "pNInz6obpgDQGcFmaJgB"
   }'::jsonb
 ),
 (
@@ -117,7 +131,9 @@ insert into scenarios (title, description, difficulty, persona_config) values
     "volatility": 0.5,
     "patience": 0.2,
     "language": "ko",
-    "system_prompt": "당신은 김 팀장입니다. 엄격하고 결과 중심적인 성격으로, 팀원들에게 높은 기준을 요구합니다. 말투는 직설적이고 때로는 무뚝뚝합니다. 부하직원의 요청에 처음에는 부정적으로 반응하지만, 논리적이고 침착한 대응에는 조금씩 입장을 바꿀 수 있습니다. 자연스러운 한국어 직장 대화체를 사용하세요."
+    "system_prompt": "당신은 김 팀장입니다. 엄격하고 결과 중심적인 성격으로, 팀원들에게 높은 기준을 요구합니다. 말투는 직설적이고 때로는 무뚝뚝합니다. 부하직원의 요청에 처음에는 부정적으로 반응하지만, 논리적이고 침착한 대응에는 조금씩 입장을 바꿀 수 있습니다. 자연스러운 한국어 직장 대화체를 사용하세요.",
+    "avatar_id": null,
+    "tts_voice_id": "VR6AewLTigWG4xSOukaG"
   }'::jsonb
 ),
 (
@@ -132,7 +148,9 @@ insert into scenarios (title, description, difficulty, persona_config) values
     "volatility": 0.2,
     "patience": 0.6,
     "language": "ko",
-    "system_prompt": "당신은 이 과장, HR 팀의 베테랑 담당자입니다. 회사 예산과 내부 정책을 철저히 따르며, 협상에서 쉽게 양보하지 않습니다. 하지만 직원의 성과와 시장 가치에 대한 논리적인 근거를 제시하면 협상 여지가 있습니다. 정중하지만 단호한 말투를 사용하며, 자연스러운 한국어 직장 대화체를 사용하세요."
+    "system_prompt": "당신은 이 과장, HR 팀의 베테랑 담당자입니다. 회사 예산과 내부 정책을 철저히 따르며, 협상에서 쉽게 양보하지 않습니다. 하지만 직원의 성과와 시장 가치에 대한 논리적인 근거를 제시하면 협상 여지가 있습니다. 정중하지만 단호한 말투를 사용하며, 자연스러운 한국어 직장 대화체를 사용하세요.",
+    "avatar_id": null,
+    "tts_voice_id": "21m00Tcm4TlvDq8ikWAM"
   }'::jsonb
 )
 on conflict do nothing;

@@ -7,12 +7,13 @@ interface VoiceButtonProps {
   disabled?: boolean
 }
 
-type SpeechRecognitionType = typeof window extends { SpeechRecognition: infer T } ? T : never
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyRecognition = any
 
 export function VoiceButton({ onResult, disabled }: VoiceButtonProps) {
   const [isListening, setIsListening] = useState(false)
   const [supported, setSupported] = useState(false)
-  const recognitionRef = useRef<InstanceType<SpeechRecognitionType> | null>(null)
+  const recognitionRef = useRef<AnyRecognition>(null)
 
   useEffect(() => {
     const SpeechRecognition =

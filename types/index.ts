@@ -15,6 +15,8 @@ export interface PersonaConfig {
   patience: number     // 0.0 - 1.0
   language: string
   system_prompt: string
+  avatar_id?: string   // future: metaverse character identifier (e.g. "rpm:abc123", "metahuman:kim")
+  tts_voice_id?: string // future: TTS voice identifier for the character
 }
 
 export interface Scenario {

@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RE:PLAY — 한국어 대화 훈련 시뮬레이터
 
-## Getting Started
+AI 캐릭터와 실전 대화를 연습하고 즉각적인 피드백을 받는 트레이닝 앱입니다.
 
-First, run the development server:
+**Stack:** Next.js 16 · Supabase · Anthropic Claude · ElevenLabs TTS · Ready Player Me (Three.js)
+
+---
+
+## Run in GitHub Codespaces (fastest)
+
+### Step 1 — Add your secrets
+
+Go to your GitHub repo → **Settings → Secrets and variables → Codespaces → New repository secret**
+
+Add these 6 secrets:
+
+| Secret name | Where to get it |
+|---|---|
+| `ANTHROPIC_API_KEY` | console.anthropic.com → API Keys |
+| `SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → service_role key |
+| `NEXT_PUBLIC_SUPABASE_URL` | Same as `SUPABASE_URL` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon/public key |
+| `ELEVENLABS_API_KEY` | elevenlabs.io → Profile → API Keys |
+
+### Step 2 — Set up the database
+
+1. Open your Supabase project → **SQL Editor**
+2. Paste the contents of `supabase/schema.sql` and run it
+3. This creates all tables and seeds the 3 starter scenarios
+
+### Step 3 — Open in Codespaces
+
+Click **Code → Codespaces → Create codespace on main**
+
+The container will:
+- Install dependencies
+- Auto-write `.env.local` from your secrets
+- Print a message telling you if any secrets are missing
+
+### Step 4 — Run the app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The browser opens automatically at port 3000. Log in with any email — a magic link is sent via Supabase.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Set up 3D avatars (optional)
 
-## Learn More
+The app works with SVG avatars by default. To enable the Ready Player Me 3D characters:
 
-To learn more about Next.js, take a look at the following resources:
+1. Go to [readyplayer.me/avatar](https://readyplayer.me/avatar) — free, no account required
+2. Create an avatar, then copy its share URL: `https://models.readyplayer.me/<UUID>.glb`
+3. In Supabase → Table Editor → `scenarios`, update `persona_config` and set `"avatar_id": "<UUID>"`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+No RPM API key needed — avatars load from their public CDN.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Change TTS voices (optional)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Each scenario has a default ElevenLabs voice ID in `persona_config.tts_voice_id`.
+Browse voices at [elevenlabs.io/voice-library](https://elevenlabs.io/voice-library) and copy the Voice ID.
+Update it in Supabase → `scenarios → persona_config → tts_voice_id`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+All voices work in Korean via the `eleven_multilingual_v2` model.
+
+---
+
+## Local development
+
+```bash
+cp .env.local.example .env.local
+# fill in .env.local with your keys
+
+npm install
+npm run dev
+```
