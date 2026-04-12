@@ -114,7 +114,9 @@ export async function POST(request: Request) {
       turn_number: nextTurn,
     } satisfies SendMessageResponse)
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to send message'
+    const message = err instanceof Error
+      ? `${err.constructor.name}: ${err.message}`
+      : JSON.stringify(err)
     return new Response(message, { status: 500 })
   }
 }
