@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { getSupabaseBrowserClient } from '@/lib/supabase-browser'
 import type { Scenario } from '@/types'
 
 const DIFFICULTY_LABEL: Record<string, string> = {
@@ -78,7 +77,7 @@ function ScoreRing({ score }: { score: number }) {
 
 export default function HomePage() {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
+  useAuth() // dev bypass — no auth needed
   const [tab, setTab] = useState<'scenarios' | 'history'>('scenarios')
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [sessions, setSessions] = useState<SessionSummary[]>([])
@@ -88,40 +87,33 @@ export default function HomePage() {
   const [starting, setStarting] = useState<string | null>(null)
   const [startError, setStartError] = useState<string | null>(null)
 
-  // Auth gate
   useEffect(() => {
-    if (!authLoading && !user) router.replace('/login')
-  }, [user, authLoading, router])
-
-  useEffect(() => {
-    if (!user) return
     fetch('/api/scenarios')
       .then((r) => r.json())
       .then((d) => setScenarios(d.scenarios ?? []))
       .finally(() => setLoadingScenarios(false))
-  }, [user])
+  }, [])
 
   // Load history lazily on first tab switch
   useEffect(() => {
-    if (tab !== 'history' || historyLoaded || !user) return
+    if (tab !== 'history' || historyLoaded) return
     setLoadingHistory(true)
-    fetch(`/api/sessions?user_id=${user.id}`)
+    fetch('/api/sessions')
       .then((r) => r.json())
       .then((d) => setSessions(d.sessions ?? []))
       .finally(() => {
         setLoadingHistory(false)
         setHistoryLoaded(true)
       })
-  }, [tab, historyLoaded, user])
+  }, [tab, historyLoaded])
 
   async function startSession(scenarioId: string) {
-    if (!user) return
     setStarting(scenarioId)
     try {
       const res = await fetch('/api/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenario_id: scenarioId, user_id: user.id }),
+        body: JSON.stringify({ scenario_id: scenarioId, user_id: null }),
       })
       if (!res.ok) {
         const text = await res.text()
@@ -137,12 +129,7 @@ export default function HomePage() {
     }
   }
 
-  async function handleLogout() {
-    await getSupabaseBrowserClient().auth.signOut()
-    router.replace('/login')
-  }
 
-  if (authLoading || !user) return null
 
   const completedSessions = sessions.filter((s) => s.status === 'completed')
   const avgScore =
@@ -163,15 +150,6 @@ export default function HomePage() {
         <div className="flex-1">
           <h1 className="text-base font-bold text-blue-900 leading-none">RE:PLAY</h1>
           <p className="text-xs text-blue-400 mt-0.5">대화 훈련 시뮬레이터</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-blue-400 truncate max-w-[120px]">{user.email}</span>
-          <button
-            onClick={handleLogout}
-            className="text-xs text-blue-300 hover:text-blue-600 transition-colors px-2 py-1 rounded-lg hover:bg-blue-50"
-          >
-            로그아웃
-          </button>
         </div>
       </header>
 
