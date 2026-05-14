@@ -1,4 +1,4 @@
-import { anthropic, ROLEPLAY_MODEL, ROLEPLAY_MAX_TOKENS } from './anthropic'
+import { nvidia, ROLEPLAY_MODEL, ROLEPLAY_MAX_TOKENS } from './nvidia'
 import type { PersonaConfig, TokenUsage } from '@/types'
 
 export interface ConversationTurn {
@@ -26,23 +26,52 @@ export async function generateRoleplayResponse(
     content: turn.content,
   }))
 
-  const response = await anthropic.messages.create({
+  const response = await nvidia.chat.completions.create({
     model: ROLEPLAY_MODEL,
     max_tokens: ROLEPLAY_MAX_TOKENS,
-    system: systemPrompt,
-    messages,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...messages,
+    ],
   })
 
-  const text = response.content
-    .filter((block) => block.type === 'text')
-    .map((block) => (block as { type: 'text'; text: string }).text)
-    .join('')
+  const text = response.choices[0]?.message?.content ?? ''
 
   return {
     response: text,
     usage: {
-      input_tokens: response.usage.input_tokens,
-      output_tokens: response.usage.output_tokens,
+      input_tokens: response.usage?.prompt_tokens ?? 0,
+      output_tokens: response.usage?.completion_tokens ?? 0,
+    },
+  }
+}
+
+export async function generateOpeningLine(
+  persona: PersonaConfig,
+): Promise<RoleplayResult> {
+  const systemPrompt = `${buildRoleplaySystemPrompt(persona)}
+
+[장면 시작 지침]
+- 사용자가 방금 이 상황에 들어왔습니다. 캐릭터로서 자연스럽게 먼저 말을 거세요.
+- 인사, 질문, 또는 상황에 맞는 발언으로 대화를 시작하세요.
+- 1-2문장으로 짧게 말하세요.`
+
+  const response = await nvidia.chat.completions.create({
+    model: ROLEPLAY_MODEL,
+    max_tokens: ROLEPLAY_MAX_TOKENS,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: '[장면 시작]' },
+    ],
+  })
+
+  const text = response.choices[0]?.message?.content ?? ''
+
+  return {
+    response: text,
+    usage: {
+      input_tokens: response.usage?.prompt_tokens ?? 0,
+      output_tokens: response.usage?.completion_tokens ?? 0,
     },
   }
 }

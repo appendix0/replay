@@ -16,7 +16,7 @@ Add these 6 secrets:
 
 | Secret name | Where to get it |
 |---|---|
-| `ANTHROPIC_API_KEY` | console.anthropic.com → API Keys |
+| `NVIDIA_API_KEY` | build.nvidia.com → Get API Key (starts with `nvapi-`) |
 | `SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → service_role key |
 | `NEXT_PUBLIC_SUPABASE_URL` | Same as `SUPABASE_URL` |

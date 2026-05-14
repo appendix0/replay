@@ -41,18 +41,39 @@ export async function POST(
     // Generate feedback report
     const feedback = await generateFeedbackReport(scenario, messages as Message[])
 
-    // Persist feedback report
-    const { data: report, error: reportError } = await db
+    // Persist feedback report. summary/safety_notice columns may not exist yet
+    // in older deployments — retry without them if PostgREST reports schema-cache miss.
+    const baseRow = {
+      session_id: id,
+      overall_score: feedback.overall_score,
+      axis_scores: feedback.axis_scores,
+      improvements: feedback.improvements,
+      raw_analysis: feedback.raw_analysis,
+    }
+    const fullRow = {
+      ...baseRow,
+      summary: feedback.summary,
+      safety_notice: feedback.safety_notice,
+    }
+
+    let { data: report, error: reportError } = await db
       .from('feedback_reports')
-      .insert({
-        session_id: id,
-        overall_score: feedback.overall_score,
-        axis_scores: feedback.axis_scores,
-        improvements: feedback.improvements,
-        raw_analysis: feedback.raw_analysis,
-      })
+      .insert(fullRow)
       .select()
       .single()
+
+    if (reportError?.code === 'PGRST204' || reportError?.code === '42703') {
+      console.warn('[end-session] new columns missing, inserting legacy row')
+      ;({ data: report, error: reportError } = await db
+        .from('feedback_reports')
+        .insert(baseRow)
+        .select()
+        .single())
+      if (report) {
+        // Surface in-memory values to the client so the UI still renders them
+        report = { ...report, summary: feedback.summary, safety_notice: feedback.safety_notice }
+      }
+    }
 
     if (reportError) throw reportError
 
@@ -70,6 +91,7 @@ export async function POST(
 
     return Response.json({ report })
   } catch (err) {
+    console.error('[end-session] error:', err)
     const message = err instanceof Error ? err.message : 'Failed to end session'
     return new Response(message, { status: 500 })
   }

@@ -54,10 +54,13 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
     }
   }, [])
 
+  // Guard against React 18 strict-mode double-invocation firing two opening requests.
+  const openingRequestedRef = useRef(false)
+
   useEffect(() => {
     fetch(`/api/sessions/${id}`)
       .then((r) => r.json())
-      .then((data: SessionData) => {
+      .then(async (data: SessionData) => {
         setSessionData(data)
         const display: DisplayMessage[] = data.messages.map((m) => ({
           id: m.id,
@@ -73,8 +76,29 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
               : undefined,
         }))
         setMessages(display)
+
+        // If no messages yet, ask the persona to open the conversation.
+        if (data.messages.length === 0 && !openingRequestedRef.current) {
+          openingRequestedRef.current = true
+          try {
+            const res = await fetch(`/api/sessions/${id}/opening`, { method: 'POST' })
+            if (!res.ok) throw new Error(await res.text())
+            const { assistant_message } = await res.json() as { assistant_message: Message }
+            setMessages([{
+              id: assistant_message.id,
+              role: 'assistant',
+              content: assistant_message.content,
+            }])
+            const voiceId = data.session?.scenarios?.persona_config?.tts_voice_id
+            onAssistantMessage(assistant_message.content, voiceId)
+          } catch (e) {
+            console.error('opening failed:', e)
+            setError('대화 시작에 실패했습니다. 새로고침 해주세요.')
+          }
+        }
       })
       .catch(() => setError('세션을 불러올 수 없습니다.'))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   useEffect(() => {
@@ -313,6 +337,29 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        {/* Scenario briefing — always at top of chat */}
+        {scenario && persona && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 mb-2">
+            <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wide mb-1.5">
+              📖 상황 안내
+            </p>
+            <p className="text-sm text-blue-900 font-semibold leading-snug mb-1">
+              {scenario.title}
+            </p>
+            <p className="text-xs text-blue-700 leading-relaxed mb-2">
+              {scenario.description}
+            </p>
+            <div className="border-t border-blue-200 pt-2 space-y-1">
+              <p className="text-xs text-blue-700">
+                <span className="font-semibold">상대:</span> {persona.name} — {persona.personality}
+              </p>
+              <p className="text-xs text-blue-700">
+                <span className="font-semibold">상황:</span> {persona.scenario}
+              </p>
+            </div>
+          </div>
+        )}
+
         {messages.length === 0 && !sending && sessionData && (
           <div className="text-center pt-8">
             <div className="mb-4 flex justify-center">
@@ -329,10 +376,19 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
               )}
             </div>
             <div className="mt-8 bg-white rounded-2xl p-4 border border-blue-100 text-left mx-2">
-              <p className="text-sm text-blue-800 font-medium mb-1">{persona?.name}</p>
-              <p className="text-sm text-blue-600 leading-relaxed">
-                안녕하세요. 준비가 되셨으면 대화를 시작해주세요.
-              </p>
+              <p className="text-sm text-blue-800 font-medium mb-2">{persona?.name}</p>
+              <div className="flex gap-1 items-center h-4">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="w-1.5 h-1.5 bg-blue-400 rounded-full"
+                    style={{
+                      animation: `wave 1s ease-in-out infinite`,
+                      animationDelay: `${i * 0.2}s`,
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         )}

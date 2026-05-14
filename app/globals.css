@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --blue-50: #eff6ff;
-  --blue-100: #dbeafe;
-  --blue-200: #bfdbfe;
-  --blue-300: #93c5fd;
-  --blue-400: #60a5fa;
-  --blue-500: #3b82f6;
-  --blue-600: #2563eb;
-  --blue-700: #1d4ed8;
-  --blue-800: #1e40af;
-  --blue-900: #1e3a8a;
+  --blue-50:  #eef1f7;
+  --blue-100: #d6dde9;
+  --blue-200: #aebcd1;
+  --blue-300: #8294b3;
+  --blue-400: #5b6f96;
+  --blue-500: #364d77;
+  --blue-600: #1a3361;
+  --blue-700: #003876;
+  --blue-800: #00205b;
+  --blue-900: #001640;
 
-  --background: #f0f7ff;
-  --foreground: #1e3a5f;
+  --background: #eef1f7;
+  --foreground: #0d2350;
   --surface: #ffffff;
-  --border: #bfdbfe;
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-light: #eff6ff;
-  --muted: #64748b;
+  --border: #d6dde9;
+  --primary: #003876;
+  --primary-hover: #00205b;
+  --primary-light: #eef1f7;
+  --muted: #5b6f96;
 }
 
 @theme inline {
@@ -27,6 +27,18 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Lower-tone navy palette (Yonsei-style) — overrides Tailwind blue scale globally */
+  --color-blue-50:  var(--blue-50);
+  --color-blue-100: var(--blue-100);
+  --color-blue-200: var(--blue-200);
+  --color-blue-300: var(--blue-300);
+  --color-blue-400: var(--blue-400);
+  --color-blue-500: var(--blue-500);
+  --color-blue-600: var(--blue-600);
+  --color-blue-700: var(--blue-700);
+  --color-blue-800: var(--blue-800);
+  --color-blue-900: var(--blue-900);
 }
 
 * {

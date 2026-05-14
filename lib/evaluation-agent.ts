@@ -1,4 +1,4 @@
-import { anthropic, EVAL_MODEL, EVAL_MAX_TOKENS } from './anthropic'
+import { nvidia, EVAL_MODEL, EVAL_MAX_TOKENS } from './nvidia'
 import type { EvaluationScores, TokenUsage } from '@/types'
 
 export interface EvaluationResult {
@@ -24,25 +24,24 @@ export async function evaluateUserUtterance(
   const systemPrompt = buildEvalSystemPrompt()
   const userPrompt = buildEvalUserPrompt(ctx)
 
-  const response = await anthropic.messages.create({
+  const response = await nvidia.chat.completions.create({
     model: EVAL_MODEL,
     max_tokens: EVAL_MAX_TOKENS,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: userPrompt }],
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
   })
 
-  const text = response.content
-    .filter((block) => block.type === 'text')
-    .map((block) => (block as { type: 'text'; text: string }).text)
-    .join('')
+  const text = response.choices[0]?.message?.content ?? ''
 
   const scores = parseEvalScores(text)
 
   return {
     scores,
     usage: {
-      input_tokens: response.usage.input_tokens,
-      output_tokens: response.usage.output_tokens,
+      input_tokens: response.usage?.prompt_tokens ?? 0,
+      output_tokens: response.usage?.completion_tokens ?? 0,
     },
   }
 }

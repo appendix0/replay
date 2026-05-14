@@ -11,10 +11,9 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Permit WebAssembly — required by the Draco decoder used by @react-three/drei
-  experimental: {
-    serverComponentsExternalPackages: ["three"],
-  },
+  serverExternalPackages: ["three"],
+
+  allowedDevOrigins: ["splice-flagship-omit.ngrok-free.dev"],
 };
 
 export default nextConfig;

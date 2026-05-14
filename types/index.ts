@@ -54,18 +54,28 @@ export interface Message {
   created_at: string
 }
 
-export interface AxisScores {
-  appropriateness: { avg: number; examples: string[] }
-  coherence: { avg: number; examples: string[] }
-  tone: { avg: number; examples: string[] }
+export type AxisKey =
+  | 'communication'  // 의사소통 명료성
+  | 'empathy'        // 공감 및 정서 인식
+  | 'assertion'      // 자기주장 및 욕구 표현
+  | 'regulation'     // 자기조절 및 정서 조절
+  | 'mutuality'      // 상호성 및 사회적 적절성
+
+export interface AxisDetail {
+  score: number      // 0-20
+  rationale: string  // observation-based explanation
 }
+
+export type AxisScores = Record<AxisKey, AxisDetail>
 
 export interface FeedbackReport {
   id: string
   session_id: string
-  overall_score: number
+  overall_score: number    // 0-100 (sum of 5 axes)
   axis_scores: AxisScores
-  improvements: string[]
+  summary: string          // 총평
+  improvements: string[]   // 개선 피드백
+  safety_notice: string | null  // 위험 신호 발견 시 안내
   raw_analysis: string | null
   created_at: string
 }

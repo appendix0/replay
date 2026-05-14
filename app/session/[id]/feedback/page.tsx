@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { CharacterDisplay } from '@/components/CharacterDisplay'
-import type { FeedbackReport, Scenario, Session } from '@/types'
+import type { FeedbackReport, Scenario, Session, AxisKey } from '@/types'
 
 interface FeedbackData {
   report: FeedbackReport
@@ -14,16 +14,22 @@ interface SessionData {
   messages: { role: string; content: string }[]
 }
 
-const AXIS_LABELS = {
-  appropriateness: '내용 적절성',
-  coherence: '맥락 일관성',
-  tone: '감정 톤',
+const AXIS_KEYS: AxisKey[] = ['communication', 'empathy', 'assertion', 'regulation', 'mutuality']
+
+const AXIS_LABELS: Record<AxisKey, string> = {
+  communication: '의사소통 명료성',
+  empathy: '공감·정서 인식',
+  assertion: '자기주장·욕구 표현',
+  regulation: '자기조절·정서 조절',
+  mutuality: '상호성·사회적 적절성',
 }
 
-const AXIS_ICONS = {
-  appropriateness: '🎯',
-  coherence: '🔗',
-  tone: '💬',
+const AXIS_ICONS: Record<AxisKey, string> = {
+  communication: '💬',
+  empathy: '❤️',
+  assertion: '🗣️',
+  regulation: '🧘',
+  mutuality: '🤝',
 }
 
 export default function FeedbackPage({ params }: { params: Promise<{ id: string }> }) {
@@ -81,8 +87,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
     return '#ef4444'
   }
 
-  const axisAvg = (axis: 'appropriateness' | 'coherence' | 'tone') =>
-    report?.axis_scores?.[axis]?.avg ?? 0
+  const axisScore = (axis: AxisKey) => report?.axis_scores?.[axis]?.score ?? 0
 
   return (
     <main className="min-h-screen bg-[#f0f7ff] max-w-lg mx-auto">
@@ -194,21 +199,21 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
             )}
           </div>
 
-          {/* Axis Score Cards */}
-          <div className="grid grid-cols-3 gap-2">
-            {(['appropriateness', 'coherence', 'tone'] as const).map((axis) => {
-              const avg = axisAvg(axis)
+          {/* Axis Score Cards (5 axes) */}
+          <div className="grid grid-cols-5 gap-1.5">
+            {AXIS_KEYS.map((axis) => {
+              const score = axisScore(axis)
               return (
                 <div
                   key={axis}
-                  className="bg-white rounded-2xl border border-blue-100 p-3 text-center shadow-sm"
+                  className="bg-white rounded-2xl border border-blue-100 p-2 text-center shadow-sm"
                 >
-                  <div className="text-xl mb-1">{AXIS_ICONS[axis]}</div>
-                  <div className="text-xs text-blue-500 mb-2 leading-tight">
+                  <div className="text-lg mb-0.5">{AXIS_ICONS[axis]}</div>
+                  <div className="text-[10px] text-blue-500 mb-1.5 leading-tight min-h-[24px] flex items-center justify-center">
                     {AXIS_LABELS[axis]}
                   </div>
                   {/* Mini arc */}
-                  <svg className="w-12 h-8 mx-auto" viewBox="0 0 48 28">
+                  <svg className="w-10 h-7 mx-auto" viewBox="0 0 48 28">
                     <path
                       d="M 4 24 A 20 20 0 0 1 44 24"
                       fill="none"
@@ -219,32 +224,42 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
                     <path
                       d="M 4 24 A 20 20 0 0 1 44 24"
                       fill="none"
-                      stroke={scoreColor(avg * 10)}
+                      stroke={scoreColor(score * 5)}
                       strokeWidth="5"
                       strokeLinecap="round"
                       strokeDasharray={`${Math.PI * 20}`}
-                      strokeDashoffset={`${Math.PI * 20 * (1 - avg / 10)}`}
+                      strokeDashoffset={`${Math.PI * 20 * (1 - score / 20)}`}
                     />
                   </svg>
                   <p
-                    className="text-lg font-black mt-1"
-                    style={{ color: scoreColor(avg * 10) }}
+                    className="text-base font-black mt-0.5"
+                    style={{ color: scoreColor(score * 5) }}
                   >
-                    {avg.toFixed(1)}
+                    {score}
                   </p>
-                  <p className="text-xs text-blue-300">/ 10</p>
+                  <p className="text-[10px] text-blue-300">/ 20</p>
                 </div>
               )
             })}
           </div>
 
-          {/* Analysis */}
-          {report?.raw_analysis && (
+          {/* Summary (총평) */}
+          {report?.summary && (
             <div className="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
               <h3 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
-                <span>📋</span> 종합 분석
+                <span>📋</span> 총평
               </h3>
-              <p className="text-sm text-blue-700 leading-relaxed">{report.raw_analysis}</p>
+              <p className="text-sm text-blue-700 leading-relaxed whitespace-pre-line">{report.summary}</p>
+            </div>
+          )}
+
+          {/* Safety notice (위험 신호) */}
+          {report?.safety_notice && (
+            <div className="bg-amber-50 rounded-2xl border border-amber-300 p-4 shadow-sm">
+              <h3 className="text-sm font-bold text-amber-900 mb-2 flex items-center gap-2">
+                <span>⚠️</span> 안내
+              </h3>
+              <p className="text-sm text-amber-800 leading-relaxed whitespace-pre-line">{report.safety_notice}</p>
             </div>
           )}
 
@@ -267,31 +282,34 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
             </div>
           )}
 
-          {/* Axis examples */}
+          {/* Per-axis rationale (항목별 근거) */}
           {report && (
             <div className="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm">
               <h3 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
-                <span>💡</span> 발화 예시
+                <span>🔍</span> 항목별 근거
               </h3>
-              {(['appropriateness', 'coherence', 'tone'] as const).map((axis) => {
-                const examples = report.axis_scores?.[axis]?.examples ?? []
-                if (!examples.length) return null
-                return (
-                  <div key={axis} className="mb-3 last:mb-0">
-                    <p className="text-xs font-semibold text-blue-500 mb-1.5">
-                      {AXIS_ICONS[axis]} {AXIS_LABELS[axis]}
-                    </p>
-                    {examples.map((ex, i) => (
-                      <div
-                        key={i}
-                        className="text-xs text-blue-700 bg-blue-50 rounded-lg px-3 py-2 mb-1"
-                      >
-                        {ex}
+              <div className="space-y-3">
+                {AXIS_KEYS.map((axis) => {
+                  const detail = report.axis_scores?.[axis]
+                  if (!detail?.rationale) return null
+                  return (
+                    <div key={axis} className="border-l-2 border-blue-200 pl-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs font-semibold text-blue-700 flex items-center gap-1">
+                          {AXIS_ICONS[axis]} {AXIS_LABELS[axis]}
+                        </p>
+                        <span
+                          className="text-xs font-black"
+                          style={{ color: scoreColor(detail.score * 5) }}
+                        >
+                          {detail.score}/20
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                )
-              })}
+                      <p className="text-xs text-blue-600 leading-relaxed">{detail.rationale}</p>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
 

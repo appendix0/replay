@@ -39,10 +39,10 @@ function formatDate(iso: string) {
 }
 
 function scoreColor(score: number) {
-  if (score >= 80) return '#2563eb'
-  if (score >= 60) return '#3b82f6'
-  if (score >= 40) return '#f59e0b'
-  return '#ef4444'
+  if (score >= 80) return '#003876'
+  if (score >= 60) return '#3a4c6e'
+  if (score >= 40) return '#a16207'
+  return '#b91c1c'
 }
 
 function ScoreRing({ score }: { score: number }) {
@@ -107,7 +107,12 @@ export default function HomePage() {
       })
   }, [tab, historyLoaded])
 
-  async function startSession(scenarioId: string) {
+  async function startSession(scenarioId: string, idx: number) {
+    if (idx === 0) {
+      setStarting(scenarioId)
+      router.push('/demo/feedback')
+      return
+    }
     setStarting(scenarioId)
     try {
       const res = await fetch('/api/sessions', {
@@ -141,7 +146,7 @@ export default function HomePage() {
       : null
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#f0f7ff]">
+    <main className="min-h-screen flex flex-col bg-[#eef1f7]">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white border-b border-blue-100 px-5 py-4 flex items-center gap-3 shadow-sm">
         <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
@@ -194,6 +199,68 @@ export default function HomePage() {
               </div>
             )}
 
+            {/* Direct-input card + voice mic */}
+            <div className="mb-5 flex gap-2 items-stretch">
+              <button
+                onClick={() => router.push('/demo/feedback')}
+                className="flex-1 text-left rounded-2xl p-5 text-white shadow-lg shadow-blue-200/60
+                           hover:shadow-xl transition-all active:scale-[0.99] relative overflow-hidden"
+                style={{
+                  background:
+                    'linear-gradient(135deg, #003876 0%, #00205b 60%, #001640 100%)',
+                }}
+              >
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                      <span className="text-xl">✏️</span>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue-200">
+                      Custom
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold mb-1">시나리오 직접 입력</h3>
+                  <p className="text-sm text-blue-100/90 leading-relaxed">
+                    어떤 상황의 대화를 연습하고 싶으신가요?
+                  </p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <div className="flex-1 bg-white/10 backdrop-blur rounded-xl px-3 py-2 text-xs text-blue-100/70 border border-white/10">
+                      예) 면접에서 자기소개하기
+                    </div>
+                    <svg
+                      className="w-5 h-5 text-white/80 flex-shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-white/5 blur-2xl pointer-events-none" />
+              </button>
+
+              <button
+                onClick={() => router.push('/demo/feedback')}
+                aria-label="음성으로 시나리오 입력"
+                className="w-16 rounded-2xl bg-white border border-blue-200 flex flex-col items-center justify-center gap-1
+                           hover:border-blue-400 hover:bg-blue-50 transition-all active:scale-95 shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center shadow-sm">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
+                    <path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.93V21H9a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-3.07A7 7 0 0 0 19 11z" />
+                  </svg>
+                </div>
+                <span className="text-[10px] text-blue-700 font-bold">음성</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3 mb-3">
+              <p className="text-xs font-bold text-blue-500 tracking-wide">추천 시나리오</p>
+              <div className="flex-1 h-px bg-blue-100" />
+            </div>
+
             {loadingScenarios ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
@@ -205,7 +272,7 @@ export default function HomePage() {
                 {scenarios.map((scenario, idx) => (
                   <button
                     key={scenario.id}
-                    onClick={() => startSession(scenario.id)}
+                    onClick={() => startSession(scenario.id, idx)}
                     disabled={starting !== null}
                     className="w-full text-left rounded-2xl bg-white border border-blue-100 p-5
                                shadow-sm hover:shadow-md hover:border-blue-300 hover:bg-blue-50

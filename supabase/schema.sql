@@ -70,12 +70,21 @@ create table if not exists feedback_reports (
   session_id uuid not null unique references sessions(id) on delete cascade,
   overall_score numeric(5, 2) not null,
   axis_scores jsonb not null,
-  -- { appropriateness: { avg, examples }, coherence: {...}, tone: {...} }
+  -- 5 axes (communication, empathy, assertion, regulation, mutuality)
+  -- each: { score: 0-20, rationale: string }
   improvements jsonb not null,
-  -- ["suggestion 1", "suggestion 2", "suggestion 3"]
+  -- ["행동 단위 제안 1", "제안 2", ...]
+  summary text,
+  -- 총평 (3~5문장)
+  safety_notice text,
+  -- 위험 신호 발견 시 전문기관 안내, 없으면 null
   raw_analysis text,
   created_at timestamptz not null default now()
 );
+
+-- Migration for existing tables (idempotent)
+alter table feedback_reports add column if not exists summary text;
+alter table feedback_reports add column if not exists safety_notice text;
 
 -- =====================
 -- Indexes
