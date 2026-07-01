@@ -29,7 +29,7 @@ const SCENARIOS: Scenario[] = [
       language: 'ko',
       system_prompt:
         '당신은 박 대리입니다. 친근하고 사교적인 성격이지만, 자신의 업무를 다른 사람에게 떠넘기려는 경향이 있습니다. 상대방이 거절하면 처음에는 조금 더 설득하려 하지만, 강하게 거절하면 이해하는 척 물러납니다. 자연스러운 한국어 직장 대화체를 사용하세요.',
-      tts_voice_id: 'pNInz6obpgDQGcFmaJgB',
+      tts_voice_id: 'bIHbv24MWmeRgasZH58o',
     },
   },
   {
@@ -48,7 +48,7 @@ const SCENARIOS: Scenario[] = [
       language: 'ko',
       system_prompt:
         '당신은 김 팀장입니다. 엄격하고 결과 중심적인 성격으로, 팀원들에게 높은 기준을 요구합니다. 말투는 직설적이고 때로는 무뚝뚝합니다. 부하직원의 요청에 처음에는 부정적으로 반응하지만, 논리적이고 침착한 대응에는 조금씩 입장을 바꿀 수 있습니다. 자연스러운 한국어 직장 대화체를 사용하세요.',
-      tts_voice_id: 'VR6AewLTigWG4xSOukaG',
+      tts_voice_id: 'nPczCjzI2devNBz1zQrb',
     },
   },
   {
@@ -67,7 +67,7 @@ const SCENARIOS: Scenario[] = [
       language: 'ko',
       system_prompt:
         '당신은 이 과장, HR 팀의 베테랑 담당자입니다. 회사 예산과 내부 정책을 철저히 따르며, 협상에서 쉽게 양보하지 않습니다. 하지만 직원의 성과와 시장 가치에 대한 논리적인 근거를 제시하면 협상 여지가 있습니다. 정중하지만 단호한 말투를 사용하며, 자연스러운 한국어 직장 대화체를 사용하세요.',
-      tts_voice_id: '21m00Tcm4TlvDq8ikWAM',
+      tts_voice_id: 'cjVigY5qzO86Huf0OWal',
     },
   },
 ]

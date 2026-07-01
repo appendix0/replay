@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { CharacterDisplay } from '@/components/CharacterDisplay'
 import { LiveAvatarStage, type LiveAvatarHandle } from '@/components/LiveAvatarStage'
 import { VoiceButton } from '@/components/VoiceButton'
 import type { Message, Scenario, Session, EvaluationScores } from '@/types'
@@ -189,7 +188,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
 
   if (error && !sessionData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f0f7ff]">
+      <div className="min-h-screen flex items-center justify-center bg-transparent">
         <div className="text-center p-6">
           <p className="text-red-500 mb-4">{error}</p>
           <button
@@ -204,7 +203,21 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
   }
 
   return (
-    <main className="h-screen flex flex-col bg-[#f0f7ff] max-w-lg mx-auto">
+    <main className="h-screen flex flex-col bg-transparent max-w-lg mx-auto">
+      {/* Analyzing overlay — shown while the end-of-session report generates (~30s) */}
+      {ending && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-transparent/95 backdrop-blur-sm">
+          <div className="w-14 h-14 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
+          <div className="text-center px-10">
+            <p className="text-blue-900 font-bold text-lg">대화를 분석하고 있어요</p>
+            <p className="text-blue-500 text-sm mt-2 leading-relaxed">
+              AI 코치가 5가지 항목으로 평가 중입니다.
+              <br />잠시만 기다려 주세요…
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white border-b border-blue-100 px-4 py-3 flex items-center gap-3 shadow-sm flex-shrink-0">
         <button
@@ -216,25 +229,12 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
           </svg>
         </button>
 
-        {/* Character + Persona info */}
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          {persona ? (
-            <CharacterDisplay
-              name={persona.name}
-              size="sm"
-              isTalking={sending || isSpeaking}
-              aggression={persona.aggression}
-              avatarId={persona.avatar_id}
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-blue-100 animate-pulse" />
-          )}
-          <div className="min-w-0">
-            <p className="font-bold text-blue-900 text-sm leading-none truncate">
-              {persona?.name ?? '...'}
-            </p>
-            <p className="text-xs text-blue-400 mt-0.5 truncate">{scenario?.title}</p>
-          </div>
+        {/* Persona info */}
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-blue-900 text-sm leading-none truncate">
+            {persona?.name ?? '...'}
+          </p>
+          <p className="text-xs text-blue-400 mt-0.5 truncate">{scenario?.title}</p>
         </div>
 
         {/* Live score + end button */}
@@ -242,7 +242,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
           {avgScore !== null && (
             <button
               onClick={() => setShowScores((v) => !v)}
-              className="px-2 py-1 rounded-lg bg-blue-50 border border-blue-200 text-xs font-bold text-blue-700"
+              className="px-2 py-1 rounded-lg bg-blue-50 border border-blue-200 text-xs font-bold text-blue-300"
             >
               {avgScore}점
             </button>
@@ -258,9 +258,9 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         </div>
       </header>
 
-      {/* LiveAvatar streaming video — the conversation partner */}
+      {/* LiveAvatar streaming video — large, video-call style */}
       {persona && (
-        <div className="flex-shrink-0 px-4 pt-3">
+        <div className="relative flex-1 min-h-0 bg-blue-950">
           <LiveAvatarStage
             ref={liveAvatarRef}
             avatarId={persona.liveavatar_id}
@@ -269,8 +269,8 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         </div>
       )}
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      {/* Messages — compact, subtitle-style strip */}
+      <div className="flex-shrink-0 h-44 overflow-y-auto px-4 py-3 space-y-2 border-t border-blue-100">
         {/* Scenario briefing — always at top of chat */}
         {scenario && persona && (
           <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 mb-2">
@@ -280,14 +280,14 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
             <p className="text-sm text-blue-900 font-semibold leading-snug mb-1">
               {scenario.title}
             </p>
-            <p className="text-xs text-blue-700 leading-relaxed mb-2">
+            <p className="text-xs text-blue-300 leading-relaxed mb-2">
               {scenario.description}
             </p>
             <div className="border-t border-blue-200 pt-2 space-y-1">
-              <p className="text-xs text-blue-700">
+              <p className="text-xs text-blue-300">
                 <span className="font-semibold">상대:</span> {persona.name} — {persona.personality}
               </p>
-              <p className="text-xs text-blue-700">
+              <p className="text-xs text-blue-300">
                 <span className="font-semibold">상황:</span> {persona.scenario}
               </p>
             </div>
@@ -416,7 +416,7 @@ function ChatBubble({
       {/* Avatar for persona messages */}
       {!isUser && (
         <div className="w-7 h-7 rounded-full bg-blue-200 flex items-center justify-center flex-shrink-0">
-          <span className="text-xs font-bold text-blue-700">{personaName[0]}</span>
+          <span className="text-xs font-bold text-blue-300">{personaName[0]}</span>
         </div>
       )}
 
@@ -446,7 +446,7 @@ function ChatBubble({
 
 function ScorePill({ label, value }: { label: string; value: number }) {
   const color =
-    value >= 7 ? 'bg-blue-100 text-blue-700' : value >= 4 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-600'
+    value >= 7 ? 'bg-blue-100 text-blue-300' : value >= 4 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-600'
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${color}`}>
       {label} {value.toFixed(1)}

@@ -130,7 +130,7 @@ export const LiveAvatarStage = forwardRef<LiveAvatarHandle, LiveAvatarStageProps
     }, [])
 
     return (
-      <div className="relative w-full aspect-video max-h-56 mx-auto rounded-2xl overflow-hidden bg-blue-950 shadow-sm">
+      <div className="relative w-full h-full overflow-hidden bg-blue-950">
         <video
           ref={videoRef}
           autoPlay
@@ -143,15 +143,15 @@ export const LiveAvatarStage = forwardRef<LiveAvatarHandle, LiveAvatarStageProps
             {error ? (
               <p className="px-4 text-center text-xs text-red-200 font-mono">{error}</p>
             ) : starting || connected ? (
-              <div className="flex items-center gap-2 text-blue-100 text-sm">
+              <div className="flex items-center gap-2 text-blue-500 text-sm">
                 <span className="w-4 h-4 rounded-full border-2 border-blue-300 border-t-transparent animate-spin" />
                 연결 중…
               </div>
             ) : (
               <button
                 onClick={start}
-                className="px-5 py-2.5 rounded-full bg-white text-blue-700 text-sm font-semibold
-                           shadow hover:bg-blue-50 transition-colors"
+                className="px-5 py-2.5 rounded-full bg-blue-600 text-white text-sm font-semibold
+                           hover:bg-blue-700 transition-colors"
               >
                 🎬 대화 시작하기
               </button>

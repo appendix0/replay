@@ -13,7 +13,7 @@ const DIFFICULTY_LABEL: Record<string, string> = {
 
 const DIFFICULTY_COLOR: Record<string, string> = {
   beginner: 'bg-blue-100 text-blue-600',
-  intermediate: 'bg-blue-200 text-blue-700',
+  intermediate: 'bg-blue-200 text-blue-300',
   advanced: 'bg-blue-700 text-white',
 }
 
@@ -107,12 +107,7 @@ export default function HomePage() {
       })
   }, [tab, historyLoaded])
 
-  async function startSession(scenarioId: string, idx: number) {
-    if (idx === 0) {
-      setStarting(scenarioId)
-      router.push('/demo/feedback')
-      return
-    }
+  async function startSession(scenarioId: string) {
     setStarting(scenarioId)
     try {
       const res = await fetch('/api/sessions', {
@@ -146,7 +141,7 @@ export default function HomePage() {
       : null
 
   return (
-    <main className="min-h-screen flex flex-col bg-[#eef1f7]">
+    <main className="min-h-screen flex flex-col bg-transparent">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white border-b border-blue-100 px-5 py-4 flex items-center gap-3 shadow-sm">
         <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
@@ -215,16 +210,16 @@ export default function HomePage() {
                     <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
                       <span className="text-xl">✏️</span>
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue-200">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue-500">
                       Custom
                     </span>
                   </div>
                   <h3 className="text-lg font-bold mb-1">시나리오 직접 입력</h3>
-                  <p className="text-sm text-blue-100/90 leading-relaxed">
+                  <p className="text-sm text-blue-500/90 leading-relaxed">
                     어떤 상황의 대화를 연습하고 싶으신가요?
                   </p>
                   <div className="mt-3 flex items-center gap-2">
-                    <div className="flex-1 bg-white/10 backdrop-blur rounded-xl px-3 py-2 text-xs text-blue-100/70 border border-white/10">
+                    <div className="flex-1 bg-white/10 backdrop-blur rounded-xl px-3 py-2 text-xs text-blue-500/70 border border-white/10">
                       예) 면접에서 자기소개하기
                     </div>
                     <svg
@@ -252,7 +247,7 @@ export default function HomePage() {
                     <path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.93V21H9a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-3.07A7 7 0 0 0 19 11z" />
                   </svg>
                 </div>
-                <span className="text-[10px] text-blue-700 font-bold">음성</span>
+                <span className="text-[10px] text-blue-300 font-bold">음성</span>
               </button>
             </div>
 
@@ -272,7 +267,7 @@ export default function HomePage() {
                 {scenarios.map((scenario, idx) => (
                   <button
                     key={scenario.id}
-                    onClick={() => startSession(scenario.id, idx)}
+                    onClick={() => startSession(scenario.id)}
                     disabled={starting !== null}
                     className="w-full text-left rounded-2xl bg-white border border-blue-100 p-5
                                shadow-sm hover:shadow-md hover:border-blue-300 hover:bg-blue-50
@@ -318,7 +313,7 @@ export default function HomePage() {
             <div className="mt-8 p-4 rounded-xl bg-white border border-blue-100 flex gap-3 items-start">
               <span className="text-xl mt-0.5">🎙️</span>
               <div>
-                <p className="text-xs font-semibold text-blue-700">음성 입력 지원</p>
+                <p className="text-xs font-semibold text-blue-300">음성 입력 지원</p>
                 <p className="text-xs text-blue-400 mt-0.5">
                   마이크 버튼을 눌러 말하거나 직접 입력하세요
                 </p>
@@ -360,7 +355,7 @@ export default function HomePage() {
                 <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4 text-3xl">
                   📭
                 </div>
-                <p className="font-bold text-blue-700 text-base">아직 기록이 없어요</p>
+                <p className="font-bold text-blue-300 text-base">아직 기록이 없어요</p>
                 <p className="text-sm text-blue-400 mt-1">시나리오를 선택해 첫 대화를 시작하세요</p>
                 <button
                   onClick={() => setTab('scenarios')}

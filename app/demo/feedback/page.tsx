@@ -92,7 +92,7 @@ export default function DemoFeedbackPage() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-[#eef1f7] max-w-lg mx-auto">
+    <main className="min-h-screen bg-transparent max-w-lg mx-auto">
       {/* Header */}
       <header className="bg-white border-b border-blue-100 px-4 py-3 flex items-center gap-3 shadow-sm">
         <button

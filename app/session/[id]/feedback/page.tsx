@@ -2,7 +2,6 @@
 
 import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { CharacterDisplay } from '@/components/CharacterDisplay'
 import type { FeedbackReport, Scenario, Session, AxisKey } from '@/types'
 
 interface FeedbackData {
@@ -76,7 +75,6 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
     return () => clearTimeout(t)
   }, [feedback])
 
-  const persona = sessionData?.session?.scenarios?.persona_config
   const scenario = sessionData?.session?.scenarios
   const report = feedback?.report
 
@@ -90,7 +88,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
   const axisScore = (axis: AxisKey) => report?.axis_scores?.[axis]?.score ?? 0
 
   return (
-    <main className="min-h-screen bg-[#f0f7ff] max-w-lg mx-auto">
+    <main className="min-h-screen bg-transparent max-w-lg mx-auto">
       {/* Header */}
       <header className="bg-white border-b border-blue-100 px-4 py-3 flex items-center gap-3 shadow-sm">
         <button
@@ -114,12 +112,12 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
           <div className="bg-white rounded-3xl border border-blue-100 shadow-sm overflow-hidden">
             {/* Blue gradient top */}
             <div
-              className="px-6 pt-8 pb-16 text-center relative"
+              className="px-6 pt-8 pb-8 text-center relative"
               style={{
                 background: 'linear-gradient(160deg, #1e40af 0%, #3b82f6 100%)',
               }}
             >
-              <p className="text-blue-200 text-sm font-medium mb-6">세션 결과</p>
+              <p className="text-blue-500 text-sm font-medium mb-6">세션 결과</p>
 
               {/* Overall Score Ring */}
               <div className="relative w-28 h-28 mx-auto">
@@ -140,44 +138,17 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-3xl font-black text-white">{report?.overall_score ?? 0}</span>
-                  <span className="text-xs text-blue-200 font-medium">/ 100</span>
+                  <span className="text-xs text-blue-500 font-medium">/ 100</span>
                 </div>
               </div>
             </div>
 
-            {/* Avatar overlapping the gradient */}
-            <div className="relative -mt-12 flex justify-center">
-              {persona && (
-                <div className="relative">
-                  <div
-                    className="rounded-full border-4 border-white shadow-lg"
-                    style={{ background: '#eff6ff' }}
-                  >
-                    <CharacterDisplay
-                      name={persona.name}
-                      size="xl"
-                      isTalking={isTalking}
-                      animate={false}
-                      aggression={persona.aggression}
-                      avatarId={persona.avatar_id}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Speech bubble from avatar */}
+            {/* Rotating coach tip */}
             {report && report.improvements.length > 0 && (
-              <div className="mx-5 mt-4 mb-5">
+              <div className="mx-5 mt-5 mb-5">
                 <div
                   className="relative bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 text-sm text-blue-800 leading-relaxed min-h-[60px] transition-all duration-300"
                 >
-                  {/* Bubble tail */}
-                  <div
-                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-2 overflow-hidden"
-                  >
-                    <div className="w-4 h-4 bg-blue-200 rotate-45 -translate-y-2 translate-x-0" />
-                  </div>
                   <p className="italic">&ldquo;{report.improvements[speakingLine]}&rdquo;</p>
                   {/* Talking dots */}
                   {isTalking && (
@@ -249,7 +220,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
               <h3 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
                 <span>📋</span> 총평
               </h3>
-              <p className="text-sm text-blue-700 leading-relaxed whitespace-pre-line">{report.summary}</p>
+              <p className="text-sm text-blue-300 leading-relaxed whitespace-pre-line">{report.summary}</p>
             </div>
           )}
 
@@ -275,7 +246,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
                     <div className="w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-bold">
                       {i + 1}
                     </div>
-                    <p className="text-sm text-blue-700 leading-relaxed">{tip}</p>
+                    <p className="text-sm text-blue-300 leading-relaxed">{tip}</p>
                   </div>
                 ))}
               </div>
@@ -295,7 +266,7 @@ export default function FeedbackPage({ params }: { params: Promise<{ id: string 
                   return (
                     <div key={axis} className="border-l-2 border-blue-200 pl-3">
                       <div className="flex items-center justify-between mb-1">
-                        <p className="text-xs font-semibold text-blue-700 flex items-center gap-1">
+                        <p className="text-xs font-semibold text-blue-300 flex items-center gap-1">
                           {AXIS_ICONS[axis]} {AXIS_LABELS[axis]}
                         </p>
                         <span

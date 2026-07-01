@@ -1,25 +1,34 @@
+/* Hallmark · macrostructure: app-shell restyle · genre: atmospheric · tone: dark, modern, technical
+ * theme: custom "black & blue" · paper oklch(12% 0.03 265) · accent oklch(62% 0.19 260) geometric-sans
+ * pre-emit critique: P5 H4 E5 S4 R4 V4 */
 @import "tailwindcss";
 
 :root {
-  --blue-50:  #eef1f7;
-  --blue-100: #d6dde9;
-  --blue-200: #aebcd1;
-  --blue-300: #8294b3;
-  --blue-400: #5b6f96;
-  --blue-500: #364d77;
-  --blue-600: #1a3361;
-  --blue-700: #003876;
-  --blue-800: #00205b;
-  --blue-900: #001640;
+  color-scheme: dark;
 
-  --background: #eef1f7;
-  --foreground: #0d2350;
-  --surface: #ffffff;
-  --border: #d6dde9;
-  --primary: #003876;
-  --primary-hover: #00205b;
-  --primary-light: #eef1f7;
-  --muted: #5b6f96;
+  /* Blue scale re-tuned for a dark surface.
+     Low end = dark fills/borders · mid = muted text · 600/700 = vivid accent · 800/900 = near-white text. */
+  --blue-50:  #111c37;   /* subtle dark fill        (bg-blue-50) */
+  --blue-100: #24324f;   /* borders / fills         (border-blue-100, bg-blue-100) */
+  --blue-200: #2f405f;   /* borders / dividers      (border-blue-200) */
+  --blue-300: #8ea2ca;   /* muted text              (text-blue-300) */
+  --blue-400: #a1b4db;   /* muted text              (text-blue-400) */
+  --blue-500: #bccbed;   /* secondary text          (text-blue-500) */
+  --blue-600: #3d7bff;   /* vivid accent            (bg-blue-600, text-blue-600) */
+  --blue-700: #2f6bff;   /* accent hover            (bg-blue-700) */
+  --blue-800: #dbe6ff;   /* light text              (text-blue-800) */
+  --blue-900: #eef3ff;   /* near-white heading      (text-blue-900) */
+
+  --background: #070b16;
+  --foreground: #e8eeff;
+  --surface: rgba(19, 29, 56, 0.72);
+  --border: #24324f;
+  --primary: #3d7bff;
+  --primary-hover: #2f6bff;
+  --primary-light: #111c37;
+  --muted: #a1b4db;
+
+  --glow: 0 0 0 1px rgba(61, 123, 255, 0.28), 0 10px 30px -10px rgba(61, 123, 255, 0.55);
 }
 
 @theme inline {
@@ -28,7 +37,6 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Lower-tone navy palette (Yonsei-style) — overrides Tailwind blue scale globally */
   --color-blue-50:  var(--blue-50);
   --color-blue-100: var(--blue-100);
   --color-blue-200: var(--blue-200);
@@ -50,12 +58,52 @@ html, body {
   margin: 0;
 }
 
+html, body {
+  overflow-x: clip;
+}
+
 body {
-  background: var(--background);
   color: var(--foreground);
   font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
+
+  /* Graphic backdrop: layered blue glows + a faint technical grid over near-black. */
+  background-color: var(--background);
+  background-image:
+    linear-gradient(rgba(140, 170, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 170, 255, 0.035) 1px, transparent 1px),
+    radial-gradient(52rem 38rem at 12% -8%, rgba(61, 123, 255, 0.22), transparent 60%),
+    radial-gradient(48rem 40rem at 108% 12%, rgba(47, 90, 240, 0.18), transparent 55%),
+    radial-gradient(44rem 34rem at 50% 118%, rgba(96, 74, 255, 0.14), transparent 60%);
+  background-size: 46px 46px, 46px 46px, auto, auto, auto;
+  background-position: center;
+  background-attachment: fixed;
 }
+
+/* ── Dark-theme overrides for the app's inline utilities ─────────────────────
+   The pages lean on bg-white for cards/headers/bubbles; remap it to a glass
+   surface so the whole app goes dark without touching every className. */
+.bg-white {
+  background-color: var(--surface) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Vivid accent elements get a soft blue glow for the modern feel. */
+.bg-blue-600 {
+  box-shadow: var(--glow);
+}
+
+/* Status colors (error / safety / success) re-tinted for a dark surface. */
+.bg-red-50, .bg-red-100 { background-color: rgba(248, 113, 113, 0.14) !important; }
+.bg-amber-50            { background-color: rgba(251, 191, 36, 0.14) !important; }
+.bg-green-50            { background-color: rgba(74, 222, 128, 0.14) !important; }
+.bg-yellow-100          { background-color: rgba(250, 204, 21, 0.14) !important; }
+.text-red-500, .text-red-600   { color: #fca5a5 !important; }
+.text-amber-800, .text-amber-900 { color: #fcd34d !important; }
+.text-green-600         { color: #86efac !important; }
+.text-yellow-700        { color: #fde68a !important; }
+.border-amber-300       { border-color: rgba(251, 191, 36, 0.35) !important; }
+.border-red-200         { border-color: rgba(248, 113, 113, 0.3) !important; }
 
 /* Voice button pulse animation */
 @keyframes pulse-ring {
@@ -99,12 +147,12 @@ body {
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--blue-50);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--blue-200);
-  border-radius: 2px;
+  border-radius: 3px;
 }
