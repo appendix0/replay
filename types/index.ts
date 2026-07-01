@@ -16,6 +16,7 @@ export interface PersonaConfig {
   language: string
   system_prompt: string
   avatar_id?: string   // future: metaverse character identifier (e.g. "rpm:abc123", "metahuman:kim")
+  liveavatar_id?: string // HeyGen LiveAvatar avatar ID; falls back to DEFAULT_LIVEAVATAR_ID
   tts_voice_id?: string // future: TTS voice identifier for the character
 }
 

@@ -1,4 +1,4 @@
-import { nvidia, EVAL_MODEL } from './nvidia'
+import { nvidia, FEEDBACK_MODEL } from './nvidia'
 import type { Message, Scenario, AxisKey, AxisScores, TokenUsage } from '@/types'
 
 export interface FeedbackResult {
@@ -97,16 +97,26 @@ ${conversationText}
 
 위 대화를 5개 지표로 평가하고 지정된 JSON 형식으로 응답하라.`
 
-  const response = await nvidia.chat.completions.create({
-    model: EVAL_MODEL,
+  // Streamed: the report is a long generation, and a non-streamed response holds
+  // the socket idle until it's fully done — long enough to be dropped behind NAT
+  // (read ETIMEDOUT). Streaming keeps bytes flowing so the connection stays alive.
+  const stream = await nvidia.chat.completions.create({
+    model: FEEDBACK_MODEL,
     max_tokens: 2048,
+    stream: true,
+    stream_options: { include_usage: true },
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: userPrompt },
     ],
   })
 
-  const text = response.choices[0]?.message?.content ?? ''
+  let text = ''
+  let usage: { prompt_tokens?: number; completion_tokens?: number } | undefined
+  for await (const chunk of stream) {
+    text += chunk.choices[0]?.delta?.content ?? ''
+    if (chunk.usage) usage = chunk.usage
+  }
 
   const parsed = parseFeedback(text)
 
@@ -114,8 +124,8 @@ ${conversationText}
     ...parsed,
     raw_analysis: text,
     usage: {
-      input_tokens: response.usage?.prompt_tokens ?? 0,
-      output_tokens: response.usage?.completion_tokens ?? 0,
+      input_tokens: usage?.prompt_tokens ?? 0,
+      output_tokens: usage?.completion_tokens ?? 0,
     },
   }
 }

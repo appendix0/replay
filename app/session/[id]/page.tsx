@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { CharacterDisplay } from '@/components/CharacterDisplay'
+import { LiveAvatarStage, type LiveAvatarHandle } from '@/components/LiveAvatarStage'
 import { VoiceButton } from '@/components/VoiceButton'
 import type { Message, Scenario, Session, EvaluationScores } from '@/types'
 
@@ -16,11 +17,6 @@ interface DisplayMessage {
   role: 'user' | 'assistant'
   content: string
   scores?: EvaluationScores
-}
-
-// Timer-based speaking simulation — used when TTS is not configured.
-function estimateSpeakingDuration(text: string): number {
-  return Math.min(5000, Math.max(800, text.length * 50))
 }
 
 export default function SessionPage({ params }: { params: Promise<{ id: string }> }) {
@@ -38,21 +34,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const speakingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  // Stable ref to the current audio amplitude getter — read every frame by MetaverseCharacter.
-  // Points to a live Web Audio AnalyserNode getter during TTS playback, or () => 0 otherwise.
-  const amplitudeGetterRef = useRef<() => number>(() => 0)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const audioCtxRef = useRef<AudioContext | null>(null)
-
-  // Cleanup audio + timers on unmount
-  useEffect(() => {
-    return () => {
-      if (speakingTimerRef.current) clearTimeout(speakingTimerRef.current)
-      audioRef.current?.pause()
-      audioCtxRef.current?.close()
-    }
-  }, [])
+  const liveAvatarRef = useRef<LiveAvatarHandle>(null)
 
   // Guard against React 18 strict-mode double-invocation firing two opening requests.
   const openingRequestedRef = useRef(false)
@@ -105,75 +87,16 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, sending])
 
-  // Called every time the assistant sends a message.
-  // If the persona has a tts_voice_id, plays ElevenLabs TTS and drives
-  // lip sync via Web Audio amplitude analysis.
-  // Falls back to a timer simulation when TTS is not configured.
-  const onAssistantMessage = useCallback(async (content: string, voiceId?: string) => {
-    // Stop any previous audio
-    if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current = null
-    }
-    if (speakingTimerRef.current) clearTimeout(speakingTimerRef.current)
-    amplitudeGetterRef.current = () => 0
+  // Route each assistant line to the LiveAvatar. It generates ElevenLabs PCM and
+  // drives the streaming video via repeatAudio(); calls made before the stream is
+  // live are queued inside the stage and flushed on connect (covers the opening).
+  const onAssistantMessage = useCallback((content: string, voiceId?: string) => {
+    liveAvatarRef.current?.speak(content, voiceId)
+  }, [])
 
-    setIsSpeaking(true)
-
-    if (voiceId) {
-      try {
-        const res = await fetch('/api/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: content, voice_id: voiceId }),
-        })
-
-        if (res.ok) {
-          const blob = await res.blob()
-          const url = URL.createObjectURL(blob)
-          const audio = new Audio(url)
-          audioRef.current = audio
-
-          // Web Audio API — used to read amplitude every frame for lip sync
-          if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-            audioCtxRef.current = new AudioContext()
-          }
-          const ctx = audioCtxRef.current
-          const analyser = ctx.createAnalyser()
-          analyser.fftSize = 256
-          const source = ctx.createMediaElementSource(audio)
-          source.connect(analyser)
-          analyser.connect(ctx.destination)
-
-          const dataArray = new Uint8Array(analyser.frequencyBinCount)
-          amplitudeGetterRef.current = () => {
-            analyser.getByteFrequencyData(dataArray)
-            // Average the lower frequency bins (speech frequencies)
-            const slice = dataArray.slice(0, dataArray.length / 2)
-            return slice.reduce((a, b) => a + b, 0) / slice.length / 255
-          }
-
-          audio.onended = () => {
-            URL.revokeObjectURL(url)
-            amplitudeGetterRef.current = () => 0
-            setIsSpeaking(false)
-          }
-
-          // Resume AudioContext if suspended (browser autoplay policy)
-          if (ctx.state === 'suspended') await ctx.resume()
-          await audio.play()
-          return // TTS path handled — skip fallback below
-        }
-      } catch (e) {
-        console.warn('TTS failed, falling back to timer:', e)
-      }
-    }
-
-    // Fallback: timer-based simulation (no TTS configured or TTS failed)
-    speakingTimerRef.current = setTimeout(() => {
-      amplitudeGetterRef.current = () => 0
-      setIsSpeaking(false)
-    }, estimateSpeakingDuration(content))
+  // Speaking state is driven by the LiveAvatar SDK's speak start/end events.
+  const handleSpeakingChange = useCallback((speaking: boolean) => {
+    setIsSpeaking(speaking)
   }, [])
 
   async function sendMessage(text: string) {
@@ -335,6 +258,17 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         </div>
       </header>
 
+      {/* LiveAvatar streaming video — the conversation partner */}
+      {persona && (
+        <div className="flex-shrink-0 px-4 pt-3">
+          <LiveAvatarStage
+            ref={liveAvatarRef}
+            avatarId={persona.liveavatar_id}
+            onSpeakingChange={handleSpeakingChange}
+          />
+        </div>
+      )}
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {/* Scenario briefing — always at top of chat */}
@@ -362,20 +296,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
 
         {messages.length === 0 && !sending && sessionData && (
           <div className="text-center pt-8">
-            <div className="mb-4 flex justify-center">
-              {persona && (
-                <CharacterDisplay
-                  name={persona.name}
-                  size="lg"
-                  animate
-                  isTalking={isSpeaking}
-                  aggression={persona.aggression}
-                  avatarId={persona.avatar_id}
-                  getAmplitude={() => amplitudeGetterRef.current()}
-                />
-              )}
-            </div>
-            <div className="mt-8 bg-white rounded-2xl p-4 border border-blue-100 text-left mx-2">
+            <div className="bg-white rounded-2xl p-4 border border-blue-100 text-left mx-2">
               <p className="text-sm text-blue-800 font-medium mb-2">{persona?.name}</p>
               <div className="flex gap-1 items-center h-4">
                 {[0, 1, 2].map((i) => (
